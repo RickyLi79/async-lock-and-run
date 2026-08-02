@@ -15,7 +15,6 @@
 
 [![npm version](https://img.shields.io/npm/v/@rickyli79/async-lock-and-run.svg)](https://www.npmjs.com/package/@rickyli79/async-lock-and-run)
 [![npm downloads](https://img.shields.io/npm/dm/@rickyli79/async-lock-and-run.svg)](https://www.npmjs.com/package/@rickyli79/async-lock-and-run)
-[![license](https://img.shields.io/npm/l/@rickyli79/async-lock-and-run.svg)](https://github.com/rickyli79/async-lock-and-run)
 
 </div>
 
