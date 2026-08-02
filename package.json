@@ -26,7 +26,7 @@
     "registry": "https://registry.npmjs.org"
   },
   "repository": {
-    "url": "https://github.com/rickyli79/async-lock-and-run"
+    "url": "https://github.com/RickyLi79/async-lock-and-run.git"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
