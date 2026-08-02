@@ -72,7 +72,9 @@ jobs:
 
       - name: Publish
         if: github.event.inputs.dry-run != 'true'
-        run: pnpm publish --no-git-checks
+        # --provenance 触发 OIDC（npm Trusted Publishing）：CI 无需保存 token，
+        # 用 GitHub OIDC 换一次性发布凭据并附带 provenance 证明
+        run: pnpm publish --provenance --no-git-checks
 
       # 确保版本 tag 存在并推送（不再依赖手动 --follow-tags），供 auto-changelog 和 gh release 使用
       - name: Ensure version tag exists
