@@ -1,0 +1,66 @@
+{
+  "name": "@rickyli79/async-lock-and-run",
+  "version": "0.1.0",
+  "description": "Run async functions under a per-key mutual exclusion lock.",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "repository": {
+    "url": "https://github.com/rickyli79/async-lock-and-run.git"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "build": "tsup",
+    "changelog": "auto-changelog --template keepachangelog --commit-limit false --starting-version v0.1.0",
+    "changelog:preview": "auto-changelog --template keepachangelog --commit-limit false --starting-version v0.1.0 -u --output CHANGELOG-preview.md"
+  },
+  "keywords": [
+    "async",
+    "lock",
+    "mutex",
+    "queue",
+    "concurrency"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "Ricky Li",
+    "email": "382688672@qq.com"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "^11.18.0",
+      "onFail": "download"
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "auto-changelog": "^2.5.0",
+    "oxlint": "^1.76.0",
+    "prettier": "^3.9.6",
+    "tsup": "^8.5.1",
+    "typescript": "5.9.3",
+    "vitest": "^4.1.10"
+  }
+}

@@ -1,0 +1,10 @@
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+.DS_Store
+*.log
+
+# 本地生成的 changelog（由 main 的 publish workflow 强制提交回仓库）
+CHANGELOG.md
+CHANGELOG-preview.md

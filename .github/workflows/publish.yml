@@ -1,0 +1,119 @@
+name: Publish
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: 仅做发布演练（pnpm publish --dry-run），不真正发布
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  id-token: write
+  contents: write
+
+concurrency:
+  group: publish-main
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    # 防 changelog 提交回 main 后（bot 触发）再次运行 → 避免循环 / 红 run
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          # 需要完整历史 + tags，供 auto-changelog 使用
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.18.0
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # 仅 push main 时做版本门禁：本地版本必须 ≠ npm latest，否则失败
+      # 首次发布时包尚未在 npm 上（npm view 无结果），视作 0.0.0 放行
+      - name: Check version changed (push only)
+        if: github.event_name == 'push'
+        run: |
+          LOCAL_VERSION="$(npm pkg get version | tr -d '"')"
+          PUBLISHED_VERSION="$(npm view @rickyli79/async-lock-and-run version 2>/dev/null || echo '0.0.0')"
+          echo "local version:  ${LOCAL_VERSION}"
+          echo "npm latest:     ${PUBLISHED_VERSION}"
+          if [ "${LOCAL_VERSION}" = "${PUBLISHED_VERSION}" ]; then
+            echo "::error::Local version ${LOCAL_VERSION} equals npm latest ${PUBLISHED_VERSION}. Bump the version before pushing to main."
+            exit 1
+          fi
+          echo "Version changed (${PUBLISHED_VERSION} -> ${LOCAL_VERSION}), proceeding to publish."
+
+      - name: Typecheck
+        run: pnpm run typecheck
+
+      - name: Test
+        run: pnpm run test
+
+      - name: Build
+        run: pnpm run build
+
+      - name: Publish (dry-run, manual only)
+        if: github.event.inputs.dry-run == 'true'
+        run: pnpm publish --dry-run --no-git-checks
+
+      - name: Publish
+        if: github.event.inputs.dry-run != 'true'
+        run: pnpm publish --no-git-checks
+
+      # 确保版本 tag 存在并推送（不再依赖手动 --follow-tags），供 auto-changelog 和 gh release 使用
+      - name: Ensure version tag exists
+        if: github.event.inputs.dry-run != 'true'
+        run: |
+          VERSION="$(npm pkg get version | tr -d '"')"
+          if git rev-parse -q --verify "refs/tags/v${VERSION}" >/dev/null; then
+            echo "Tag v${VERSION} already exists."
+          else
+            echo "Creating and pushing tag v${VERSION} at $(git rev-parse --short HEAD)"
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git tag "v${VERSION}"
+            git push origin "v${VERSION}"
+          fi
+
+      # 发布成功后，由 workflow（main 侧）生成 changelog 并创建 GitHub Release（release notes）
+      - name: Generate changelog & create GitHub Release
+        if: github.event.inputs.dry-run != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="$(npm pkg get version | tr -d '"')"
+          pnpm run changelog
+          if gh release create "v${VERSION}" --notes "$(cat CHANGELOG.md)"; then
+            echo "GitHub Release v${VERSION} created."
+          else
+            echo "::warning::GitHub Release creation failed. npm publish already succeeded."
+          fi
+
+      # 把生成的 CHANGELOG.md 提交回 main（本地已 gitignore，用 -f 强制添加，保证 repo 上可见且新鲜）
+      - name: Commit CHANGELOG.md back to main
+        if: github.event.inputs.dry-run != 'true'
+        run: |
+          VERSION="$(npm pkg get version | tr -d '"')"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f CHANGELOG.md
+          if git diff --cached --quiet; then
+            echo "CHANGELOG.md unchanged, nothing to commit."
+          else
+            git commit -m "chore: update CHANGELOG.md for v${VERSION}"
+            git push origin HEAD:main
+          fi
