@@ -30,8 +30,7 @@
 - [⚠️ 语义与注意事项](#语义与注意事项)
 - [🌐 浏览器兼容](#浏览器兼容)
 - [🛠️ 开发](#开发)
-- [🚢 发布流程](#发布流程)
-- [📄 许可证](#许可证)
+- [ 许可证](#许可证)
 
 ---
 
@@ -265,48 +264,6 @@ async-lock-and-run/
 ├── .github/workflows/    # CI / 自动发布（publish.yml）
 └── package.json
 ```
-
-<a id="发布流程"></a>
-
-## 🚢 发布流程
-
-本项目采用 **dev（开发）→ main（发布）** 的双分支模型。
-
-### 手动发版步骤
-
-1. 提升版本号并提交到 `dev`：
-
-   ```bash
-   npm version patch   # 或 minor / major
-   git push origin dev
-   ```
-
-2. 打开 `dev → main` 的 Pull Request，**使用 merge commit（不要 squash / rebase）** 合并。
-
-3. 合并到 `main` 后，自动发布链路被触发。
-
-### 自动发布链路
-
-`push main` 时，GitHub Actions（`.github/workflows/publish.yml`）自动执行：
-
-```mermaid
-flowchart LR
-    A["dev 分支"] -->|"npm version patch / minor / major"| B["提升版本号"]
-    B -->|"push dev"| C["PR dev → main（merge commit）"]
-    C -->|"push main"| D["GitHub Actions publish.yml"]
-    D --> E["版本门禁"]
-    E --> F["typecheck / test / build"]
-    F --> G["pnpm publish（OIDC Trusted Publishing + provenance）"]
-    G --> H["自动打 vX.Y.Z tag"]
-    H --> I["生成 changelog / 建 GitHub Release"]
-    I --> J["CHANGELOG.md 提交回 main"]
-```
-
-要点：
-
-- 发布使用 **OIDC Trusted Publishing + provenance**，无需在 CI 中保存 npm token。
-- 发布成功后会**自动打 `vX.Y.Z` tag**、生成 changelog、创建 GitHub Release，并把 `CHANGELOG.md` 提交回 `main`。
-- 未通过版本门禁或 typecheck/test/build 任一环节，发布不会执行。
 
 <a id="许可证"></a>
 

@@ -1,6 +1,6 @@
 {
   "name": "@rickyli79/async-lock-and-run",
-  "version": "0.1.5",
+  "version": "1.0.0",
   "description": "Run async functions under a per-key mutual exclusion lock.",
   "type": "module",
   "main": "./dist/index.cjs",
