@@ -30,8 +30,7 @@
 - [⚠️ Semantics & Notes](#semantics--notes)
 - [🌐 Browser Support](#browser-support)
 - [🛠️ Development](#development)
-- [🚢 Release Process](#release-process)
-- [📄 License](#license)
+- [ License](#license)
 
 ---
 
@@ -265,48 +264,6 @@ async-lock-and-run/
 ├── .github/workflows/    # CI / auto-publish (publish.yml)
 └── package.json
 ```
-
-<a id="release-process"></a>
-
-## 🚢 Release Process
-
-This project follows a **dev (development) → main (release)** two-branch model.
-
-### Manual release steps
-
-1. Bump the version and push to `dev`:
-
-   ```bash
-   npm version patch   # or minor / major
-   git push origin dev
-   ```
-
-2. Open a `dev → main` Pull Request and merge it **with a merge commit (not squash/rebase)**.
-
-3. Merging into `main` triggers the automated release pipeline.
-
-### Automated release pipeline
-
-On `push main`, GitHub Actions (`.github/workflows/publish.yml`) runs automatically:
-
-```mermaid
-flowchart LR
-    A["dev branch"] -->|"npm version patch / minor / major"| B["Bump version"]
-    B -->|"push dev"| C["PR dev → main (merge commit)"]
-    C -->|"push main"| D["GitHub Actions publish.yml"]
-    D --> E["Version gate"]
-    E --> F["typecheck / test / build"]
-    F --> G["pnpm publish (OIDC Trusted Publishing + provenance)"]
-    G --> H["Auto-create vX.Y.Z tag"]
-    H --> I["Generate changelog / create GitHub Release"]
-    I --> J["Commit CHANGELOG.md back to main"]
-```
-
-Key points:
-
-- Publishing uses **OIDC Trusted Publishing + provenance** — no npm token stored in CI.
-- On success it **auto-creates the `vX.Y.Z` tag**, generates the changelog, creates the GitHub Release, and commits `CHANGELOG.md` back to `main`.
-- Publishing is skipped if the version gate or any of typecheck / test / build fails.
 
 <a id="license"></a>
 
